@@ -66,7 +66,7 @@
     <div style="display:flex;justify-content:flex-end"><button id="langSwitch" class="secondary" style="padding:9px 14px">中文</button></div>
     <div class="logo">✦ REALTIME BATTLE · 1 VS 1</div>
     <h1>OẲN TÙ TÌ <span style="color:var(--cyan)">ONLINE</span></h1>
-    <p class="sub">Thách đấu bạn bè · 5 giây quyết định · Chạm mốc 20 điểm</p>
+    <p class="sub">Thách đấu bạn bè · 5 giây mỗi lượt · Chơi đến khi rút lui</p>
   </header>
 
   <section id="home" class="home-grid">
@@ -93,7 +93,7 @@
         • Mỗi lượt có 5 giây để chọn Kéo ✌️, Búa ✊ hoặc Bao ✋.<br>
         • Server tự chốt kết quả khi hết giờ hoặc cả hai đã chọn.<br>
         • Người thắng được +1 điểm, hòa không cộng điểm.<br>
-        • Mỗi điểm hiển thị tương đương 10.000 VND; đạt 20 điểm trước sẽ thắng.
+        • Mỗi lượt thắng nhận 500 VND; chơi không giới hạn đến khi một người rút lui.
       </div>
     </div>
   </section>
@@ -151,9 +151,10 @@
       <div id="resultDetail" class="result-detail"></div>
       <button id="nextBtn" class="full">CHƠI LƯỢT TIẾP THEO</button>
     </div>
+    <button id="withdrawBtn" class="secondary full" style="margin-top:20px;border-color:#a54b70;color:#ffb3c9">RÚT LUI</button>
     <div id="finishedArea" class="hidden">
       <div id="winnerText" class="winner">🏆 CHIẾN THẮNG!</div>
-      <div class="result-detail" style="text-align:center">Trận đấu đã kết thúc ở mốc 20 điểm.</div>
+      <div class="result-detail" style="text-align:center">Một người đã rút lui. Đây là kết quả cuối cùng.</div>
     </div>
     <div id="message" class="notice"></div>
   </section>
@@ -166,34 +167,36 @@
   const $ = id => document.getElementById(id);
   const dictionary = {
     vi: {
-      title:'OẲN TÙ TÌ ONLINE',subtitle:'Thách đấu bạn bè · 5 giây quyết định · Chạm mốc 20 điểm',
+      title:'OẲN TÙ TÌ ONLINE',subtitle:'Thách đấu bạn bè · 5 giây mỗi lượt · Chơi đến khi rút lui',
       create:'🎮 Tạo phòng mới',join:'🚪 Tham gia phòng',name:'Tên người chơi',nameHint:'Nhập tên của bạn',
       createBtn:'TẠO PHÒNG',joinBtn:'VÀO PHÒNG',room:'Mã phòng',createHint:'Bạn sẽ nhận được mã phòng và đường link để gửi cho đối thủ.',
       joinHint:'Hoặc mở trực tiếp link mời, nhập tên rồi vào phòng.',rules:'📜 Luật chơi',
-      rulesBody:'• Mỗi phòng tối đa 2 người chơi.<br>• Mỗi lượt có 5 giây để chọn Kéo ✌️, Búa ✊ hoặc Bao ✋.<br>• Server tự chốt kết quả khi hết giờ hoặc cả hai đã chọn.<br>• Người thắng được +1 điểm, hòa không cộng điểm.<br>• Mỗi điểm hiển thị tương đương 10.000 VND; đạt 20 điểm trước sẽ thắng.',
+      rulesBody:'• Mỗi phòng tối đa 2 người chơi.<br>• Mỗi lượt có 5 giây để chọn Kéo ✌️, Búa ✊ hoặc Bao ✋.<br>• Server tự chốt kết quả khi hết giờ hoặc cả hai đã chọn.<br>• Người thắng được +1 điểm, hòa không cộng điểm.<br>• Mỗi lượt thắng nhận 500 VND; chơi không giới hạn đến khi một người rút lui.',
       copyCode:'Sao chép mã',copyLink:'Gửi link mời ↗',waitingTitle:'⏳ Đang chờ đối thủ',waitingDetail:'Gửi mã phòng hoặc link mời cho người chơi còn lại.',
       timer:'GIÂY CÒN LẠI · HÃY CHỌN NGAY!',scissors:'KÉO',rock:'BÚA',paper:'BAO',converted:'VND quy đổi',
       waiting:'Đang chờ người chơi thứ hai tham gia phòng...',waitingPlayer:'Đang chờ...',disconnected:'mất kết nối',
       ready:'Hai người đã vào phòng. Sẵn sàng bắt đầu!',readyTitle:'🔥 Cả hai đã sẵn sàng!',readyDetail:'Bấm nút bên dưới để bắt đầu lượt đầu tiên.',
       start:'BẮT ĐẦU TRẬN ĐẤU',next:'CHƠI LƯỢT TIẾP THEO',round:n=>`LƯỢT ${n} · Hai người hãy chọn!`,result:n=>`KẾT QUẢ LƯỢT ${n}`,
-      finished:'TRẬN ĐẤU KẾT THÚC',win:n=>`🏆 ${n} CHIẾN THẮNG!`,finishedDetail:'Trận đấu đã kết thúc ở mốc 20 điểm.',
+      withdraw:'RÚT LUI',withdrawConfirm:'Bạn có chắc muốn rút lui và kết thúc trận đấu cho cả hai?',withdrawn:n=>`${n} đã rút lui. Trận đấu kết thúc!`,
+      finished:'TRẬN ĐẤU KẾT THÚC',win:n=>`🏆 ${n} CHIẾN THẮNG!`,finishedDetail:'Một người đã rút lui. Đây là kết quả cuối cùng.',
       unchosen:'Bạn chưa chọn.',chosen:c=>`Bạn đã chọn ${c}. Đang chờ đối thủ...`,noChoice:'Không chọn',
       invalid:'Hãy nhập tên và mã phòng hợp lệ.',copied:'Đã sao chép mã phòng!',linkCopied:'Đã sao chép link mời! Gửi link này cho đối thủ.',
       draw:'Hai người chọn giống nhau. Hòa!',bothMissed:'Cả hai chưa chọn. Lượt này hòa!',roundWin:n=>`${n} thắng lượt này!`,missed:(w,l)=>`${w} thắng vì ${l} không chọn kịp!`,
       roomNotFound:'Không tìm thấy phòng. Hãy kiểm tra lại mã phòng.',roomFull:'Phòng đã đủ 2 người chơi.'
     },
     zh: {
-      title:'在线猜拳',subtitle:'好友对战 · 5秒出拳 · 率先获得20分',
+      title:'在线猜拳',subtitle:'好友对战 · 每轮5秒 · 直到有人退出',
       create:'🎮 创建房间',join:'🚪 加入房间',name:'玩家昵称',nameHint:'请输入昵称',
       createBtn:'创建房间',joinBtn:'加入房间',room:'房间码',createHint:'创建后会获得房间码和邀请链接，可发送给对手。',
       joinHint:'也可以直接打开邀请链接，输入昵称后加入。',rules:'📜 游戏规则',
-      rulesBody:'• 每个房间最多2名玩家。<br>• 每轮有5秒时间选择剪刀 ✌️、石头 ✊ 或布 ✋。<br>• 时间结束或双方都已选择时，系统自动公布结果。<br>• 获胜者加1分，平局不加分。<br>• 每分相当于10,000越南盾；率先获得20分者获胜。',
+      rulesBody:'• 每个房间最多2名玩家。<br>• 每轮有5秒时间选择剪刀 ✌️、石头 ✊ 或布 ✋。<br>• 时间结束或双方都已选择时，系统自动公布结果。<br>• 获胜者加1分，平局不加分。<br>• 每赢一轮获得500越南盾；不限轮数，直到一方退出。',
       copyCode:'复制房间码',copyLink:'复制邀请链接 ↗',waitingTitle:'⏳ 等待对手加入',waitingDetail:'将房间码或邀请链接发送给另一位玩家。',
       timer:'剩余秒数 · 请立即出拳！',scissors:'剪刀',rock:'石头',paper:'布',converted:'越南盾（换算）',
       waiting:'正在等待第二位玩家加入...',waitingPlayer:'等待中...',disconnected:'已断开连接',
       ready:'两位玩家已进入房间，准备开始！',readyTitle:'🔥 双方已准备就绪！',readyDetail:'点击下方按钮开始第一轮。',
       start:'开始比赛',next:'下一轮',round:n=>`第 ${n} 轮 · 请出拳！`,result:n=>`第 ${n} 轮结果`,
-      finished:'比赛结束',win:n=>`🏆 ${n} 获胜！`,finishedDetail:'比赛结束，获胜目标为20分。',
+      withdraw:'退出游戏',withdrawConfirm:'确定要退出并结束双方的比赛吗？',withdrawn:n=>`${n}已退出，比赛结束！`,
+      finished:'比赛结束',win:n=>`🏆 ${n} 获胜！`,finishedDetail:'一方已退出，以下为最终结果。',
       unchosen:'你还没有选择。',chosen:c=>`你已选择${c}，正在等待对手...`,noChoice:'未选择',
       invalid:'请输入有效昵称和房间码。',copied:'房间码已复制！',linkCopied:'邀请链接已复制，请发送给对手。',
       draw:'双方选择相同，平局！',bothMissed:'双方均未出拳，本轮平局！',roundWin:n=>`${n}赢得本轮！`,missed:(w,l)=>`${l}未及时出拳，${w}获胜！`,
@@ -211,7 +214,7 @@
     ['#home .panel:nth-child(3) h2','rules'],['#home .panel:nth-child(3) .rules','rulesBody'],
     ['#copyCode','copyCode'],['#copyLink','copyLink'],['#waiting .result-title','waitingTitle'],['#waiting .result-detail','waitingDetail'],
     ['.timer-caption','timer'],['.choice[data-choice="scissors"]','scissors'],['.choice[data-choice="rock"]','rock'],['.choice[data-choice="paper"]','paper'],
-    ['#finishedArea .result-detail','finishedDetail']
+    ['#finishedArea .result-detail','finishedDetail'],['#withdrawBtn','withdraw']
   ];
   function translateStatic() {
     document.documentElement.lang=lang;
@@ -251,7 +254,7 @@
       $('resultDetail').textContent=room.lastResult.choices.map(c=>`${c.name}: ${c.choice?labels()[c.choice]:T().noChoice}`).join('　 |　 ');
       $('nextBtn').textContent=T().next;
     }else if(room.status==='finished'){
-      $('status').textContent=T().finished;$('winnerText').textContent=T().win(room.winner);
+      $('status').textContent=T().finished;$('winnerText').textContent=room.withdrawnBy?T().withdrawn(room.withdrawnBy):T().finished;
     }else{
       $('status').textContent=T().ready;$('resultTitle').textContent=T().readyTitle;
       $('resultDetail').textContent=T().readyDetail;$('nextBtn').textContent=T().start;
@@ -319,6 +322,10 @@
     if (currentRoom.status === 'ready') socket.emit('round:start', { code: currentCode, token: myToken });
     else if (currentRoom.status === 'result') socket.emit('round:next', { code: currentCode, token: myToken });
   };
+  $('withdrawBtn').onclick = () => {
+    if (!currentRoom || currentRoom.status === 'finished') return;
+    if (confirm(T().withdrawConfirm)) socket.emit('room:withdraw', { code: currentCode, token: myToken });
+  };
   $('langSwitch').onclick = () => {
     lang = lang === 'vi' ? 'zh' : 'vi';
     localStorage.setItem('rps_language',lang);
@@ -334,11 +341,12 @@
   socket.on("room:update", room => {
     currentRoom = room;
     showGame(room.code);
+    $("withdrawBtn").classList.toggle("hidden", room.status === "finished");
     room.players.forEach((p, i) => {
       $("name" + i).textContent = p.name + (p.connected ? "" : " · mất kết nối");
       $("score" + i).textContent = p.score;
-      $("money" + i).textContent = (p.score * 10000).toLocaleString("vi-VN");
-      $("bar" + i).style.width = (p.score / 20 * 100) + "%";
+      $("money" + i).textContent = (p.score * 500).toLocaleString("vi-VN");
+      $("bar" + i).style.width = (p.score / Math.max(1, ...room.players.map(x => x.score)) * 100) + "%";
     });
     if (room.players.length < 2) {
       $("name1").textContent = "Đang chờ...";
@@ -386,7 +394,7 @@
       $("resultArea").classList.add("hidden");
       $("finishedArea").classList.remove("hidden");
       $("status").textContent = "TRẬN ĐẤU KẾT THÚC";
-      $("winnerText").textContent = `🏆 ${room.winner} CHIẾN THẮNG!`;
+      $("winnerText").textContent = room.withdrawnBy ? T().withdrawn(room.withdrawnBy) : T().finished;
     } else {
       $("status").textContent = "Hai người đã vào phòng. Sẵn sàng bắt đầu!";
       $("roundArea").classList.add("hidden");

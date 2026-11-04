@@ -12,7 +12,7 @@ app.use(express.static("public"));
 
 const rooms = new Map();
 const ROUND_SECONDS = 5;
-const WIN_SCORE = 20;
+const VND_PER_WIN = 500;
 
 function makeCode() {
   let code;
@@ -34,7 +34,8 @@ function publicRoom(room) {
     round: room.round,
     deadline: room.deadline,
     lastResult: room.lastResult,
-    winner: room.winner
+    winner: room.winner,
+    withdrawnBy: room.withdrawnBy || null
   };
 }
 
@@ -93,9 +94,8 @@ function finishRound(room) {
     winner.score += 1;
   }
 
-  const gameWinner = room.players.find(p => p.score >= WIN_SCORE);
-  room.status = gameWinner ? "finished" : "result";
-  room.winner = gameWinner ? gameWinner.name : null;
+  room.status = "result";
+  room.winner = null;
   room.lastResult = {
     message,
     choices: room.players.map(p => ({
@@ -122,6 +122,7 @@ io.on("connection", socket => {
       choices: {},
       lastResult: null,
       winner: null,
+      withdrawnBy: null,
       timer: null
     };
     rooms.set(code, room);
@@ -179,6 +180,18 @@ io.on("connection", socket => {
     if (!room || !findPlayer(room, token) || room.status !== "result") return;
     // Any player may start the next round; status changes immediately to prevent duplicate starts.
     beginRound(room);
+  });
+
+  socket.on("room:withdraw", ({ code, token }) => {
+    const room = rooms.get(String(code || "").toUpperCase());
+    const player = room && findPlayer(room, token);
+    if (!room || !player || room.status === "finished") return;
+    clearTimeout(room.timer);
+    room.deadline = null;
+    room.status = "finished";
+    room.withdrawnBy = player.name;
+    room.winner = null;
+    emitRoom(room);
   });
 
   socket.on("disconnect", () => {
