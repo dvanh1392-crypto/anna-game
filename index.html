@@ -945,3 +945,951 @@ if(getConfig()){
 </script>
 </body>
 </html>
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>猜拳对决 | Oẳn tù tì Online</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;padding:22px;
+ font-family:Arial,sans-serif;color:#f4f6ff;
+ background:radial-gradient(ellipse at top,#263a69,#111a32 48%,#080d1b);
+}
+.wrap{max-width:950px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center}
+.brand{color:#67e8f9;font-weight:bold;letter-spacing:2px;font-size:13px}
+select,input{
+ background:#0c1429;color:white;border:1px solid #34476e;
+ border-radius:10px;padding:12px;font-size:14px;width:100%;
+}
+.lang{width:auto}
+h1{font-size:42px;margin:30px 0 8px}
+.subtitle{color:#a9b5d3;margin-bottom:25px}
+.card{
+ background:linear-gradient(145deg,#1d2948,#131b31);
+ border:1px solid #2b3a60;border-radius:20px;
+ padding:22px;margin-bottom:18px;
+ box-shadow:0 15px 40px #0004;
+}
+label{display:block;color:#a9b5d3;font-size:12px;margin-bottom:7px}
+input{margin-bottom:14px}
+button{
+ border:0;border-radius:11px;padding:13px 17px;
+ background:linear-gradient(100deg,#67e8f9,#a5f3fc);
+ color:#09111f;font-weight:bold;font-size:14px;
+ cursor:pointer;transition:.15s;
+}
+button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.secondary{background:#293858;color:white;border:1px solid #40547e}
+.danger{background:#48283b;color:#ffd6e1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.status{font-size:13px;color:#a9b5d3;margin-top:15px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#64748b;margin-right:6px}
+.dot.on{background:#6ee7b7}
+.hidden{display:none!important}
+.roombar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.roomcode{font-size:25px;color:#fbbf24;font-weight:900;letter-spacing:5px;margin-top:5px}
+.players{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:20px}
+.player{
+ background:#0d162d;border:1px solid #34476e;
+ border-radius:17px;padding:18px;text-align:center;min-width:0;
+}
+.player.me{border-color:#67e8f9}
+.pname{font-size:13px;color:#a9b5d3;overflow-wrap:anywhere}
+.score{font-size:60px;font-weight:900;margin:8px 0}
+.points{font-size:12px;color:#fbbf24}
+.vs{font-weight:bold;color:#7484a8}
+.progress{height:8px;background:#0a1225;border-radius:20px;overflow:hidden;margin:20px 0}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,#67e8f9,#818cf8);transition:.3s}
+.center{text-align:center;margin:18px 0}
+.round{font-size:13px;color:#a9b5d3}
+.timer{font-size:65px;font-weight:900;color:#67e8f9;margin:8px}
+.message{font-size:18px;font-weight:bold}
+.hint{font-size:13px;color:#a9b5d3;margin-top:8px}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.choice{
+ background:#111b34;color:white;border:1px solid #34476e;
+ border-radius:17px;padding:18px 5px;font-size:38px;
+}
+.choice span{display:block;font-size:13px;color:#a9b5d3;margin-top:8px}
+.choice.selected{border:2px solid #67e8f9;background:#123349}
+.result{display:flex;justify-content:center;align-items:center;gap:30px;font-size:48px;margin:20px}
+.result small{display:block;font-size:12px;color:#a9b5d3;text-align:center;margin-top:8px}
+.toast{font-size:13px;color:#fbbf24;margin-top:12px;min-height:18px}
+.foot{text-align:center;color:#a9b5d3;font-size:12px;line-height:1.8;margin:20px}
+.modal{
+ position:fixed;inset:0;background:#050914e8;
+ display:grid;place-items:center;padding:18px;z-index:10;
+}
+.modalbox{width:min(600px,100%);max-height:90vh;overflow:auto}
+textarea{
+ width:100%;background:#0c1429;color:white;border:1px solid #34476e;
+ border-radius:10px;padding:12px;font-family:monospace;
+}
+@media(max-width:600px){
+ body{padding:13px}
+ h1{font-size:32px}
+ .card{padding:15px}
+ .score{font-size:43px}
+ .player{padding:12px 5px}
+ .choices{gap:6px}
+ .choice{font-size:30px;padding:14px 3px}
+ .timer{font-size:55px}
+ .grid{grid-template-columns:1fr}
+ .full{grid-column:auto}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+ <div class="brand">✦ MINI GAME · ONLINE DUEL</div>
+ <select class="lang" id="language">
+  <option value="vi">🇻🇳 Tiếng Việt</option>
+  <option value="zh">🇨🇳 简体中文</option>
+ </select>
+</header>
+
+<h1 id="title">猜拳对决 <span style="color:#67e8f9">.</span></h1>
+<p class="subtitle" data-i18n="subtitle">Oẳn tù tì Online · 2 người · 2 máy tính</p>
+
+<!-- JOIN / CREATE -->
+<section class="card" id="setup">
+ <h2 data-i18n="enter">Vào trận đấu</h2>
+ <p class="hint" data-i18n="intro">Một người tạo phòng, người còn lại nhập mã phòng để tham gia.</p>
+
+ <div class="grid">
+  <div class="full">
+   <label data-i18n="yourname">TÊN HIỂN THỊ</label>
+   <input id="name" maxlength="18" placeholder="Nhập tên của bạn">
+  </div>
+  <div class="full">
+   <label data-i18n="roomlabel">MÃ PHÒNG (nếu tham gia)</label>
+   <input id="roomInput" maxlength="6" placeholder="Mã phòng 6 ký tự">
+  </div>
+  <button id="createBtn" data-i18n="create">＋ Tạo phòng mới</button>
+  <button id="joinBtn" class="secondary" data-i18n="join">Tham gia phòng →</button>
+  <button id="configBtn" class="secondary full" data-i18n="firebase">⚙ Cấu hình Firebase</button>
+ </div>
+
+ <div class="status">
+  <i class="dot" id="connDot"></i>
+  <span id="connText">Chưa kết nối máy chủ</span>
+ </div>
+ <div class="toast" id="setupToast"></div>
+</section>
+
+<!-- GAME -->
+<section class="card hidden" id="game">
+
+ <div class="roombar">
+  <div>
+   <div class="round" data-i18n="roomcode">MÃ PHÒNG</div>
+   <div class="roomcode" id="roomCode">------</div>
+  </div>
+  <div style="display:flex;gap:8px">
+   <button id="copyBtn" class="secondary" data-i18n="copy">Copy mã</button>
+   <button id="leaveBtn" class="danger" data-i18n="leave">Thoát</button>
+  </div>
+ </div>
+
+ <div class="players">
+  <div class="player me">
+   <div class="pname" id="p1name">Bạn</div>
+   <div class="score" id="p1score">0</div>
+   <div class="points" id="p1points">0 / 20 điểm</div>
+  </div>
+
+  <div class="vs">VS</div>
+
+  <div class="player">
+   <div class="pname" id="p2name">Đang chờ...</div>
+   <div class="score" id="p2score">0</div>
+   <div class="points" id="p2points">0 / 20 điểm</div>
+  </div>
+ </div>
+
+ <div class="progress"><div id="progress"></div></div>
+
+ <div class="center">
+  <div class="round" id="roundLabel">LƯỢT 1</div>
+  <div class="timer" id="timer">5</div>
+  <div class="message" id="message">Đang chờ người chơi thứ hai...</div>
+  <div class="hint" id="hint">Khi đủ 2 người, trò chơi sẽ bắt đầu.</div>
+ </div>
+
+ <div class="choices" id="choices">
+  <button class="choice" data-choice="scissors">✌️<span data-i18n="scissors">KÉO</span></button>
+  <button class="choice" data-choice="rock">✊<span data-i18n="rock">BÚA</span></button>
+  <button class="choice" data-choice="paper">✋<span data-i18n="paper">BAO</span></button>
+ </div>
+
+ <div class="center hidden" id="resultPanel">
+  <div class="result">
+   <div><span id="r1">❔</span><small id="r1label">Bạn</small></div>
+   <div style="font-size:16px;color:#a9b5d3">VS</div>
+   <div><span id="r2">❔</span><small id="r2label">Đối thủ</small></div>
+  </div>
+  <div class="message" id="resultMessage"></div>
+  <button id="nextBtn" data-i18n="next">Chơi lượt tiếp theo →</button>
+ </div>
+
+ <div class="toast" id="gameToast"></div>
+</section>
+
+<div class="foot">
+ <div data-i18n="rule">Thắng +1 điểm · Hòa 0 điểm · Đạt 20 điểm là chiến thắng</div>
+ <div data-i18n="money">1 điểm = 10.000 VND</div>
+ <div data-i18n="disclaimer">Trò chơi chỉ ghi điểm, không tự động giao dịch tiền.</div>
+</div>
+</div>
+
+<!-- FIREBASE CONFIG -->
+<div class="modal hidden" id="configModal">
+ <div class="card modalbox">
+  <h2 data-i18n="configtitle">Cấu hình Firebase</h2>
+  <p class="hint" data-i18n="configintro">
+   Dán Firebase Config của bạn vào bên dưới để kết nối hai máy qua Internet.
+  </p>
+  <label>FIREBASE CONFIG (JSON)</label>
+  <textarea id="firebaseConfig" rows="9" spellcheck="false"
+   placeholder='{"apiKey":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
+  <div style="display:flex;gap:10px;margin-top:12px">
+   <button id="saveConfig" data-i18n="save">Lưu & kết nối</button>
+   <button id="closeConfig" class="secondary" data-i18n="close">Đóng</button>
+  </div>
+  <p class="hint" data-i18n="security">
+   Cần bật Realtime Database trong Firebase Console. Không nên sử dụng quyền đọc/ghi công khai cho phiên bản chính thức.
+  </p>
+ </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+ getDatabase,ref,set,get,onValue,runTransaction,update
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* =========================
+   1. LANGUAGE SETTINGS
+========================= */
+
+const translations = {
+ vi:{
+  subtitle:"Oẳn tù tì Online · 2 người · 2 máy tính",
+  enter:"Vào trận đấu",
+  intro:"Một người tạo phòng, người còn lại nhập mã phòng để tham gia.",
+  yourname:"TÊN HIỂN THỊ",
+  roomlabel:"MÃ PHÒNG (nếu tham gia)",
+  create:"＋ Tạo phòng mới",
+  join:"Tham gia phòng →",
+  firebase:"⚙ Cấu hình Firebase",
+  roomcode:"MÃ PHÒNG",
+  copy:"Copy mã",
+  leave:"Thoát",
+  waiting:"Đang chờ...",
+  round:"LƯỢT",
+  choose:"Chọn nhanh trong 5 giây!",
+  selected:"Đã chọn! Đang chờ đối thủ...",
+  waitingPlayer:"Đang chờ người chơi thứ hai...",
+  sendCode:"Gửi mã phòng cho đối thủ để bắt đầu.",
+  scissors:"KÉO · 剪刀",
+  rock:"BÚA · 石头",
+  paper:"BAO · 布",
+  next:"Chơi lượt tiếp theo →",
+  rule:"Thắng +1 điểm · Hòa 0 điểm · Đạt 20 điểm là chiến thắng",
+  money:"1 điểm = 10.000 VND",
+  disclaimer:"Trò chơi chỉ ghi điểm, không tự động giao dịch tiền.",
+  configtitle:"Cấu hình Firebase",
+  configintro:"Dán Firebase Config của bạn vào bên dưới để kết nối hai máy qua Internet.",
+  save:"Lưu & kết nối",
+  close:"Đóng",
+  security:"Cần bật Realtime Database trong Firebase Console. Không nên sử dụng quyền đọc/ghi công khai cho phiên bản chính thức.",
+  connected:"Đã kết nối Firebase",
+  disconnected:"Chưa kết nối máy chủ",
+  myChoice:"Lựa chọn của bạn đã được khóa.",
+  result:"Kết quả lượt chơi",
+  tie:"Hòa! Không ai được cộng điểm.",
+  noChoice:"Cả hai chưa chọn. Lượt này không có điểm.",
+  win:"🎉 {name} thắng lượt này! +1 điểm",
+  timeout1:"⏰ {name} hết giờ! {other} +1 điểm",
+  timeout2:"⏰ {name} hết giờ! {other} +1 điểm",
+  noRoom:"Phòng không còn tồn tại.",
+  invalidCode:"Mã phòng cần gồm 6 ký tự.",
+  roomFull:"Không thể vào phòng. Mã sai hoặc phòng đã đủ 2 người.",
+  copied:"Đã copy mã phòng!",
+  copyError:"Không copy được. Mã phòng: ",
+  configError:"Bạn chưa nhập Firebase config hợp lệ.",
+  joined:"Đã vào phòng · đang đồng bộ",
+  finished:"Trận đấu kết thúc",
+  winner:"🏆 {name} chiến thắng!",
+  enterName:"Nhập tên của bạn",
+  resultLabel:"Không chọn",
+  chooseLabel:"Đang chọn",
+  opponent:"Đối thủ",
+  you:"Bạn",
+  points:"điểm"
+ },
+ zh:{
+  subtitle:"在线猜拳 · 2名玩家 · 两台设备",
+  enter:"进入游戏",
+  intro:"一名玩家创建房间，另一名玩家输入房间号码加入。",
+  yourname:"玩家昵称",
+  roomlabel:"房间号码（加入时填写）",
+  create:"＋ 创建房间",
+  join:"加入房间 →",
+  firebase:"⚙ Firebase 设置",
+  roomcode:"房间号码",
+  copy:"复制号码",
+  leave:"退出",
+  waiting:"等待中...",
+  round:"第",
+  choose:"请在5秒内选择！",
+  selected:"已选择！等待对手...",
+  waitingPlayer:"等待第二位玩家加入...",
+  sendCode:"请将房间号码发送给对手。",
+  scissors:"剪刀",
+  rock:"石头",
+  paper:"布",
+  next:"下一轮 →",
+  rule:"胜利 +1 分 · 平局 0 分 · 先达到20分者获胜",
+  money:"1分 = 10,000 越南盾",
+  disclaimer:"游戏仅记录分数，不会自动进行金钱交易。",
+  configtitle:"Firebase 设置",
+  configintro:"请在下方粘贴 Firebase Config，让两台设备通过互联网连接。",
+  save:"保存并连接",
+  close:"关闭",
+  security:"请在 Firebase Console 启用 Realtime Database。正式使用时不建议开放公开读写权限。",
+  connected:"Firebase 已连接",
+  disconnected:"尚未连接服务器",
+  myChoice:"你的选择已锁定，等待对手。",
+  result:"本轮结果",
+  tie:"平局！双方都没有得分。",
+  noChoice:"双方都没有选择，本轮不计分。",
+  win:"🎉 {name} 赢得本轮！+1分",
+  timeout1:"⏰ {name} 超时！{other} +1分",
+  timeout2:"⏰ {name} 超时！{other} +1分",
+  noRoom:"房间不存在或已被删除。",
+  invalidCode:"房间号码必须为6位字符。",
+  roomFull:"无法加入，房间号码错误或房间已满。",
+  copied:"房间号码已复制！",
+  copyError:"无法复制，房间号码：",
+  configError:"请先填写正确的 Firebase Config。",
+  joined:"已进入房间 · 正在同步",
+  finished:"游戏结束",
+  winner:"🏆 {name} 获胜！",
+  enterName:"请输入昵称",
+  resultLabel:"未选择",
+  chooseLabel:"已选择",
+  opponent:"对手",
+  you:"你",
+  points:"分"
+ }
+};
+
+let lang=localStorage.getItem("rpsLanguage")||"vi";
+const $=id=>document.getElementById(id);
+
+function t(key,values={}){
+ let s=translations[lang][key]||translations.vi[key]||key;
+ for(const [k,v] of Object.entries(values))s=s.replaceAll("{"+k+"}",v);
+ return s;
+}
+
+function applyLanguage(){
+ document.documentElement.lang=lang==="zh"?"zh-CN":"vi";
+ $("language").value=lang;
+
+ document.querySelectorAll("[data-i18n]").forEach(el=>{
+  const key=el.dataset.i18n;
+  el.textContent=t(key);
+ });
+
+ $("name").placeholder=t("enterName");
+ $("connText").textContent=db?t("connected"):t("disconnected");
+
+ if(lastState)render(lastState);
+}
+
+$("language").onchange=()=>{
+ lang=$("language").value;
+ localStorage.setItem("rpsLanguage",lang);
+ applyLanguage();
+};
+
+/* =========================
+   2. FIREBASE
+========================= */
+
+let db=null;
+let room=null;
+let playerId=null;
+let playerName="";
+let roomRef=null;
+let unsubscribe=null;
+let timerLoop=null;
+let lastState=null;
+let finalizing=false;
+
+const icons={
+ rock:"✊",
+ paper:"✋",
+ scissors:"✌️"
+};
+
+const labels={
+ rock:{vi:"Búa",zh:"石头"},
+ paper:{vi:"Bao",zh:"布"},
+ scissors:{vi:"Kéo",zh:"剪刀"}
+};
+
+function toast(id,msg){
+ $(id).textContent=msg;
+ setTimeout(()=>{
+  if($(id).textContent===msg)$(id).textContent="";
+ },4000);
+}
+
+function setConn(ok,msg){
+ $("connDot").classList.toggle("on",ok);
+ $("connText").textContent=msg;
+}
+
+function getConfig(){
+ try{
+  return JSON.parse(localStorage.getItem("rpsFirebaseConfig")||"null");
+ }catch{
+  return null;
+ }
+}
+
+async function connect(){
+ const cfg=getConfig();
+
+ if(!cfg?.databaseURL||!cfg?.apiKey){
+  throw new Error(t("configError"));
+ }
+
+ const app=getApps().length
+  ?getApps()[0]
+  :initializeApp(cfg);
+
+ db=getDatabase(app);
+ setConn(true,t("connected"));
+}
+
+/* =========================
+   3. ROOM MANAGEMENT
+========================= */
+
+function newId(){
+ return "p"+Math.random().toString(36).slice(2,12);
+}
+
+function makeCode(){
+ return Math.random().toString(36).slice(2,8).toUpperCase();
+}
+
+function initialState(name,id){
+ return {
+  status:"waiting",
+  round:1,
+  players:{
+   p1:{id,name,score:0},
+   p2:null
+  },
+  roundData:{
+   deadline:0,
+   choices:{},
+   result:null
+  },
+  createdAt:Date.now()
+ };
+}
+
+async function createRoom(){
+ try{
+  await connect();
+
+  playerName=$("name").value.trim()||(lang==="vi"?"Người chơi 1":"玩家1");
+  playerId=newId();
+
+  room=makeCode();
+
+  const r=ref(db,"rooms/"+room);
+
+  await set(r,initialState(playerName,playerId));
+
+  enterGame();
+  startListen();
+
+ }catch(e){
+  toast("setupToast",e.message);
+ }
+}
+
+async function joinRoom(){
+ try{
+  await connect();
+
+  playerName=$("name").value.trim()||(lang==="vi"?"Người chơi 2":"玩家2");
+  playerId=newId();
+
+  room=$("roomInput").value.trim().toUpperCase();
+
+  if(!/^[A-Z0-9]{6}$/.test(room)){
+   throw new Error(t("invalidCode"));
+  }
+
+  const r=ref(db,"rooms/"+room);
+
+  await runTransaction(r,s=>{
+   if(!s||s.players?.p2)return;
+
+   s.players.p2={
+    id:playerId,
+    name:playerName,
+    score:0
+   };
+
+   s.status="playing";
+
+   s.roundData={
+    deadline:Date.now()+5000,
+    choices:{},
+    result:null
+   };
+
+   return s;
+  });
+
+  const snap=await get(r);
+
+  if(!snap.exists()||snap.val().players?.p2?.id!==playerId){
+   throw new Error(t("roomFull"));
+  }
+
+  enterGame();
+  startListen();
+
+ }catch(e){
+  toast("setupToast",e.message);
+ }
+}
+
+function enterGame(){
+ $("setup").classList.add("hidden");
+ $("game").classList.remove("hidden");
+ $("roomCode").textContent=room;
+ setConn(true,t("joined"));
+}
+
+function startListen(){
+ if(unsubscribe)unsubscribe();
+
+ roomRef=ref(db,"rooms/"+room);
+
+ unsubscribe=onValue(roomRef,snap=>{
+  if(!snap.exists()){
+   toast("gameToast",t("noRoom"));
+   return;
+  }
+
+  lastState=snap.val();
+  render(lastState);
+ });
+}
+
+/* =========================
+   4. GAME DISPLAY
+========================= */
+
+function render(s){
+ const p1=s.players?.p1;
+ const p2=s.players?.p2;
+
+ const isP1=p1?.id===playerId;
+ const me=isP1?p1:p2;
+ const other=isP1?p2:p1;
+
+ $("p1name").textContent=me?.name||t("you");
+ $("p2name").textContent=other?.name||t("waiting");
+
+ $("p1score").textContent=me?.score??0;
+ $("p2score").textContent=other?.score??0;
+
+ $("p1points").textContent=(me?.score||0)+" / 20 "+t("points");
+ $("p2points").textContent=(other?.score||0)+" / 20 "+t("points");
+
+ $("progress").style.width=
+  (Math.max(p1?.score||0,p2?.score||0)/20*100)+"%";
+
+ $("roundLabel").textContent=
+  t("round")+" "+(s.round||1);
+
+ const rd=s.roundData||{};
+ const choices=rd.choices||{};
+ const myChoice=choices[playerId];
+
+ if(!p2){
+  $("timer").textContent="—";
+  $("message").textContent=t("waitingPlayer");
+  $("hint").textContent=t("sendCode");
+
+  setChoices(false);
+  $("resultPanel").classList.add("hidden");
+  return;
+ }
+
+ if(s.status==="playing"){
+
+  $("resultPanel").classList.add("hidden");
+  $("choices").classList.remove("hidden");
+
+  const remain=Math.max(
+   0,
+   Math.ceil(((rd.deadline||Date.now())-Date.now())/1000)
+  );
+
+  $("timer").textContent=remain;
+
+  $("message").textContent=
+   myChoice?t("selected"):t("choose");
+
+  $("hint").textContent=
+   myChoice?t("myChoice"):t("choose");
+
+  setChoices(!myChoice&&remain>0);
+
+  if(timerLoop)clearInterval(timerLoop);
+
+  timerLoop=setInterval(()=>{
+   if(!lastState||lastState.status!=="playing"){
+    clearInterval(timerLoop);
+    return;
+   }
+
+   const left=Math.max(
+    0,
+    Math.ceil((lastState.roundData.deadline-Date.now())/1000)
+   );
+
+   $("timer").textContent=left;
+
+   if(left<=0)resolveRound();
+
+  },150);
+
+  if(Object.keys(choices).length>=2||Date.now()>=rd.deadline){
+   resolveRound();
+  }
+
+ }else if(s.status==="result"||s.status==="finished"){
+
+  if(timerLoop)clearInterval(timerLoop);
+
+  setChoices(false);
+  $("choices").classList.add("hidden");
+  $("resultPanel").classList.remove("hidden");
+
+  const a=rd.result?.a;
+  const b=rd.result?.b;
+
+  // Hiển thị lựa chọn theo góc nhìn người chơi hiện tại
+  const myPick=isP1?a:b;
+  const otherPick=isP1?b:a;
+
+  $("timer").textContent="✓";
+  $("message").textContent=t("result");
+
+  $("r1").textContent=myPick?icons[myPick]:"⌛";
+  $("r2").textContent=otherPick?icons[otherPick]:"⌛";
+
+  $("r1label").textContent=
+   (me?.name||t("you"))+" · "+
+   (myPick?labels[myPick][lang]:t("resultLabel"));
+
+  $("r2label").textContent=
+   (other?.name||t("opponent"))+" · "+
+   (otherPick?labels[otherPick][lang]:t("resultLabel"));
+
+  $("resultMessage").textContent=rd.result?.text||t("tie");
+
+  if(s.status==="finished"&&s.winner){
+   $("nextBtn").classList.remove("hidden");
+   $("nextBtn").disabled=true;
+   $("nextBtn").textContent=t("winner",{name:s.winner.name});
+  }else{
+   $("nextBtn").classList.remove("hidden");
+   $("nextBtn").disabled=false;
+   $("nextBtn").textContent=t("next");
+  }
+ }
+}
+
+function setChoices(enabled){
+ document.querySelectorAll(".choice").forEach(b=>{
+  b.disabled=!enabled;
+ });
+}
+
+/* =========================
+   5. CHOOSE
+========================= */
+
+async function choose(choice){
+ if(!lastState||lastState.status!=="playing")return;
+
+ if(Date.now()>lastState.roundData.deadline)return;
+
+ // Không cho chọn lần thứ hai
+ if(lastState.roundData.choices?.[playerId])return;
+
+ setChoices(false);
+
+ $("message").textContent=t("selected");
+
+ try{
+  await update(
+   ref(db,`rooms/${room}/roundData/choices`),
+   {[playerId]:choice}
+  );
+ }catch(e){
+  toast("gameToast",e.message);
+ }
+}
+
+/* =========================
+   6. CALCULATE RESULT
+========================= */
+
+async function resolveRound(){
+ if(!room||!lastState||lastState.status!=="playing"||finalizing)return;
+
+ const rd=lastState.roundData||{};
+
+ if(Date.now()<rd.deadline&&Object.keys(rd.choices||{}).length<2){
+  return;
+ }
+
+ finalizing=true;
+
+ try{
+
+  await runTransaction(roomRef,s=>{
+
+   if(!s||s.status!=="playing")return;
+
+   const p1=s.players.p1;
+   const p2=s.players.p2;
+
+   if(!p2)return;
+
+   const a=s.roundData.choices?.[p1.id]||null;
+   const b=s.roundData.choices?.[p2.id]||null;
+
+   if(Date.now()<s.roundData.deadline&&(!a||!b)){
+    return;
+   }
+
+   let resultText="";
+
+   if(!a&&!b){
+
+    resultText=t("noChoice");
+
+   }else if(!a){
+
+    p2.score++;
+
+    resultText=t("timeout1",{
+     name:p1.name,
+     other:p2.name
+    });
+
+   }else if(!b){
+
+    p1.score++;
+
+    resultText=t("timeout2",{
+     name:p2.name,
+     other:p1.name
+    });
+
+   }else if(a===b){
+
+    resultText=t("tie");
+
+   }else{
+
+    const p1Win=
+     (a==="rock"&&b==="scissors")||
+     (a==="scissors"&&b==="paper")||
+     (a==="paper"&&b==="rock");
+
+    if(p1Win){
+     p1.score++;
+     resultText=t("win",{name:p1.name});
+    }else{
+     p2.score++;
+     resultText=t("win",{name:p2.name});
+    }
+   }
+
+   s.roundData.result={
+    a,b,text:resultText
+   };
+
+   s.status="result";
+
+   if(p1.score>=20||p2.score>=20){
+    s.status="finished";
+    s.winner=p1.score>=20?p1:p2;
+   }
+
+   return s;
+  });
+
+ }catch(e){
+  toast("gameToast",e.message);
+ }finally{
+  finalizing=false;
+ }
+}
+
+/* =========================
+   7. NEXT ROUND
+========================= */
+
+async function nextRound(){
+ try{
+
+  await runTransaction(roomRef,s=>{
+
+   if(!s||s.status!=="result"||s.winner)return;
+
+   s.round++;
+
+   s.status="playing";
+
+   s.roundData={
+    deadline:Date.now()+5000,
+    choices:{},
+    result:null
+   };
+
+   return s;
+  });
+
+ }catch(e){
+  toast("gameToast",e.message);
+ }
+}
+
+/* =========================
+   8. EXIT / EVENTS
+========================= */
+
+function leave(){
+ if(unsubscribe)unsubscribe();
+ if(timerLoop)clearInterval(timerLoop);
+
+ room=null;
+ playerId=null;
+ lastState=null;
+
+ $("game").classList.add("hidden");
+ $("setup").classList.remove("hidden");
+
+ setConn(!!db,db?t("connected"):t("disconnected"));
+}
+
+$("createBtn").onclick=createRoom;
+$("joinBtn").onclick=joinRoom;
+
+document.querySelectorAll(".choice").forEach(b=>{
+ b.onclick=()=>choose(b.dataset.choice);
+});
+
+$("nextBtn").onclick=nextRound;
+$("leaveBtn").onclick=leave;
+
+$("copyBtn").onclick=async()=>{
+ try{
+  await navigator.clipboard.writeText(room);
+  toast("gameToast",t("copied"));
+ }catch{
+  toast("gameToast",t("copyError")+room);
+ }
+};
+
+/* =========================
+   9. FIREBASE CONFIG WINDOW
+========================= */
+
+$("configBtn").onclick=()=>{
+ $("configModal").classList.remove("hidden");
+
+ $("firebaseConfig").value=JSON.stringify(
+  getConfig()||{
+   apiKey:"",
+   authDomain:"",
+   databaseURL:"",
+   projectId:"",
+   appId:""
+  },
+  null,2
+ );
+};
+
+$("closeConfig").onclick=()=>{
+ $("configModal").classList.add("hidden");
+};
+
+$("saveConfig").onclick=()=>{
+ try{
+  const config=JSON.parse($("firebaseConfig").value);
+
+  if(!config.databaseURL||!config.apiKey){
+   throw new Error(t("configError"));
+  }
+
+  localStorage.setItem(
+   "rpsFirebaseConfig",
+   JSON.stringify(config)
+  );
+
+  $("configModal").classList.add("hidden");
+
+  connect().catch(e=>toast("setupToast",e.message));
+
+ }catch(e){
+  alert(e.message);
+ }
+};
+
+/* =========================
+   10. INITIALIZATION
+========================= */
+
+applyLanguage();
+
+if(getConfig()){
+ connect().catch(e=>setConn(false,e.message));
+}
+
+</script>
+</body>
+</html>
